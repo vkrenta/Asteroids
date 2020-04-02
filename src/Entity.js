@@ -1,5 +1,5 @@
 export default class Entity {
-  constructor({ x, y, hitRadius, source, width, height }) {
+  constructor({ x, y, hitRadius, source, width, height, dx, dy }) {
     this.x = x;
     this.y = y;
     this.width = width;
@@ -7,6 +7,8 @@ export default class Entity {
     this.hitRadius = hitRadius;
     this.image = new Image();
     this.image.src = source;
+    this.dx = dx;
+    this.dy = dy;
   }
 
   render(ctx, sx, sy) {

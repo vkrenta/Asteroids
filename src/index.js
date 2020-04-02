@@ -1,4 +1,5 @@
 import Ship from './Ship.js';
+import { SIDE, KEY } from './helpers/index.js';
 
 export default class Game {
   constructor() {
@@ -21,6 +22,22 @@ export default class Game {
     this.onResize();
     this.background.src = '/images/background.jpg';
     requestAnimationFrame(time => this.update(time));
+    window.addEventListener('keydown', event => this.onKeyDown(event.keyCode));
+    window.addEventListener('keyup', event => this.onKeyUp(event.keyCode));
+  }
+
+  onKeyUp(keyCode) {
+    if (KEY.up.includes(keyCode)) this.ship.setTrust(false);
+    if (KEY.left.includes(keyCode)) this.ship.setRotation(SIDE.none);
+    if (KEY.right.includes(keyCode)) this.ship.setRotation(SIDE.none);
+    //console.log(keyCode);
+  }
+
+  onKeyDown(keyCode) {
+    if (KEY.left.includes(keyCode)) this.ship.setRotation(SIDE.left);
+    if (KEY.right.includes(keyCode)) this.ship.setRotation(SIDE.right);
+    if (KEY.up.includes(keyCode)) this.ship.setTrust(true);
+    // console.log(keyCode);
   }
 
   onResize() {
@@ -34,14 +51,18 @@ export default class Game {
   update(time) {
     const dt = time - this.prevUpdateTime;
     this.prevUpdateTime = time;
-    // console.log('update!');
+    //console.clear();
     this.render();
+    this.ship.setRotationSpeed(0.3 * dt);
+    this.ship.move(dt, this.width, this.height);
+    this.ship.rotate();
+    //console.log(this.ship.x, this.ship.y);
+    //console.log(this.ship.dx, this.ship.dy);
 
     requestAnimationFrame(time => this.update(time));
   }
 
   render() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
     this.ctx.drawImage(this.background, 0, 0);
     this.ship.render(this.ctx);
   }
