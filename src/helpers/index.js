@@ -7,3 +7,5 @@ export const KEY = {
   right: [39, 68],
   up: [38, 87]
 };
+
+export const random = num => Math.random() * num;

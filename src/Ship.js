@@ -4,19 +4,19 @@ import { ONE_DEGREE, SIDE } from './helpers/index.js';
 export default class Ship extends Entity {
   constructor() {
     super({
-      x: 300,
-      y: 300,
-      hitRadius: 50,
+      x: 0,
+      y: 0,
+      hitRadius: 35,
       source: 'images/spaceship.png',
       width: 40,
       height: 40,
       dx: 0,
-      dy: 0
+      dy: 0,
+      angle: -90,
+      velocity: 0
     });
-    this.angle = 0;
     this.rotationSpeed = 0;
     this.isTrust = false;
-    this.velocity = 0;
     this.maxVelocity = 1;
     this.rotationSide = SIDE.none;
   }
@@ -62,14 +62,6 @@ export default class Ship extends Entity {
   }
 
   render(ctx) {
-    ctx.transform(1, 0, 0, 1, this.x, this.y);
-    ctx.rotate((this.angle + 90) * ONE_DEGREE);
-    ctx.transform(1, 0, 0, 1, -this.x, -this.y);
-
     super.render(ctx, 40, 0);
-
-    ctx.transform(1, 0, 0, 1, this.x, this.y);
-    ctx.rotate(-((this.angle + 90) * ONE_DEGREE));
-    ctx.transform(1, 0, 0, 1, -this.x, -this.y);
   }
 }

@@ -1,5 +1,6 @@
 import Ship from './Ship.js';
-import { SIDE, KEY } from './helpers/index.js';
+import { SIDE, KEY, random } from './helpers/index.js';
+import Rock from './Rock.js';
 
 export default class Game {
   constructor() {
@@ -12,8 +13,10 @@ export default class Game {
     this.width = 0;
 
     this.background = new Image();
-    this.ship = new Ship();
 
+    this.ship = new Ship();
+    this.rocks = [];
+    for (let i = 0; i <= random(30); i++) this.rocks.push(new Rock());
     this.init();
   }
 
@@ -21,6 +24,8 @@ export default class Game {
     window.addEventListener('resize', x => this.onResize());
     this.onResize();
     this.background.src = '/images/background.jpg';
+    this.ship.setSpawnPoint(this.width / 2, this.height / 2);
+    this.rocks.forEach(rock => rock.setSpawnPoint(random(this.width), 0));
     requestAnimationFrame(time => this.update(time));
     window.addEventListener('keydown', event => this.onKeyDown(event.keyCode));
     window.addEventListener('keyup', event => this.onKeyUp(event.keyCode));
@@ -56,6 +61,7 @@ export default class Game {
     this.ship.setRotationSpeed(0.3 * dt);
     this.ship.move(dt, this.width, this.height);
     this.ship.rotate();
+    this.rocks.forEach(rock => rock.move(dt, this.width, this.height));
     //console.log(this.ship.x, this.ship.y);
     //console.log(this.ship.dx, this.ship.dy);
 
@@ -65,6 +71,7 @@ export default class Game {
   render() {
     this.ctx.drawImage(this.background, 0, 0);
     this.ship.render(this.ctx);
+    this.rocks.forEach(rock => rock.render(this.ctx));
   }
 }
 
