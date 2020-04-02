@@ -1,6 +1,7 @@
 import Ship from './Ship.js';
 import { SIDE, KEY, random } from './helpers/index.js';
 import Rock from './Rock.js';
+import Bullet from './Bullet.js';
 
 export default class Game {
   constructor() {
@@ -17,6 +18,8 @@ export default class Game {
     this.ship = new Ship();
     this.rocks = [];
     for (let i = 0; i <= random(30); i++) this.rocks.push(new Rock());
+
+    this.bullets = [];
     this.init();
   }
 
@@ -42,6 +45,9 @@ export default class Game {
     if (KEY.left.includes(keyCode)) this.ship.setRotation(SIDE.left);
     if (KEY.right.includes(keyCode)) this.ship.setRotation(SIDE.right);
     if (KEY.up.includes(keyCode)) this.ship.setTrust(true);
+    if (KEY.space.includes(keyCode))
+      this.bullets.push(new Bullet(this.ship.x, this.ship.y, this.ship.angle));
+    console.log(this.bullets);
     // console.log(keyCode);
   }
 
@@ -62,6 +68,10 @@ export default class Game {
     this.ship.move(dt, this.width, this.height);
     this.ship.rotate();
     this.rocks.forEach(rock => rock.move(dt, this.width, this.height));
+    this.bullets.forEach(bullet => {
+      bullet.move(dt, this.width, this.height);
+    });
+    this.bullets = this.bullets.filter(e => !e.outOfBound);
     //console.log(this.ship.x, this.ship.y);
     //console.log(this.ship.dx, this.ship.dy);
 
@@ -72,6 +82,7 @@ export default class Game {
     this.ctx.drawImage(this.background, 0, 0);
     this.ship.render(this.ctx);
     this.rocks.forEach(rock => rock.render(this.ctx));
+    this.bullets.forEach(bullet => bullet.render(this.ctx));
   }
 }
 
