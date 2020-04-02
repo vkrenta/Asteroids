@@ -16,7 +16,6 @@ export default class Ship extends Entity {
     this.angle = 0;
     this.rotationSpeed = 0;
     this.isTrust = false;
-    this.acceleration = 0.001;
     this.velocity = 0;
     this.maxVelocity = 1;
     this.rotationSide = SIDE.none;
@@ -36,18 +35,20 @@ export default class Ship extends Entity {
 
   move(dt, bWidth, bHeight) {
     if (this.isTrust) {
-      this.velocity += this.acceleration * dt;
-      if (this.velocity >= this.maxVelocity) this.velocity = this.maxVelocity;
+      this.dx += Math.cos(this.angle * ONE_DEGREE) * 0.001 * dt;
+      this.dy += Math.sin(this.angle * ONE_DEGREE) * 0.001 * dt;
     } else {
-      this.velocity -= this.acceleration * dt;
-      if (this.velocity <= 0) this.velocity = 0;
+      this.dx *= 0.995;
+      this.dy *= 0.995;
     }
 
-    this.dx = Math.cos((this.angle - 90) * ONE_DEGREE) * this.velocity * dt;
-    this.dy = Math.sin((this.angle - 90) * ONE_DEGREE) * this.velocity * dt;
-
-    this.x += this.dx;
-    this.y += this.dy;
+    this.velocity = Math.sqrt(this.dx ** 2 + this.dy ** 2);
+    if (this.velocity > this.maxVelocity) {
+      this.dx *= this.maxVelocity / this.velocity;
+      this.dy *= this.maxVelocity / this.velocity;
+    }
+    this.x += this.dx * dt;
+    this.y += this.dy * dt;
 
     if (this.x > bWidth) this.x = 0;
     if (this.y > bHeight) this.y = 0;
@@ -61,20 +62,14 @@ export default class Ship extends Entity {
   }
 
   render(ctx) {
-    // ctx.rotate((3.14 * 40) / 180);
-    // ctx.drawImage(this.image, 40, 0, 40, 40, this.x, this.y, 40, 40);
-    // ctx.setTransform(1, 0, 0, 1, 0, 0);
-    //ctx.setTransform(1, 0, 0, 1, 0, 0);
-    // this.angle++;
-
     ctx.transform(1, 0, 0, 1, this.x, this.y);
-    ctx.rotate(this.angle * ONE_DEGREE);
+    ctx.rotate((this.angle + 90) * ONE_DEGREE);
     ctx.transform(1, 0, 0, 1, -this.x, -this.y);
 
     super.render(ctx, 40, 0);
 
     ctx.transform(1, 0, 0, 1, this.x, this.y);
-    ctx.rotate(-(this.angle * ONE_DEGREE));
+    ctx.rotate(-((this.angle + 90) * ONE_DEGREE));
     ctx.transform(1, 0, 0, 1, -this.x, -this.y);
   }
 }
