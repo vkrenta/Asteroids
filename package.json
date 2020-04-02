@@ -1,0 +1,23 @@
+{
+  "name": "Asteroids",
+  "version": "1.0.0",
+  "description": "``npm install`` <br>\r ``npm run start`` for dev build or ``npm run production`` for prod build <br>\r open ``localhost:3000`` in your favorite browser <br>\r have fun",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx http-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkrenta/Asteroids.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vkrenta/Asteroids/issues"
+  },
+  "homepage": "https://github.com/vkrenta/Asteroids#readme",
+  "devDependencies": {
+    "http-server": "^0.12.1"
+  }
+}
