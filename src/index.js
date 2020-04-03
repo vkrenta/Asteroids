@@ -2,6 +2,7 @@ import Ship from './Ship.js';
 import { SIDE, KEY, random } from './helpers/index.js';
 import Rock from './Rock.js';
 import Bullet from './Bullet.js';
+import Shard from './Shard.js';
 
 export default class Game {
   constructor() {
@@ -18,6 +19,7 @@ export default class Game {
     this.ship = new Ship();
     this.rocks = [];
     this.bullets = [];
+    // this.shards = [];
     this.rockInterval = 2000;
     this.init();
   }
@@ -27,7 +29,6 @@ export default class Game {
     this.onResize();
     this.background.src = '/images/background.jpg';
     this.ship.setSpawnPoint(this.width / 2, this.height / 2);
-    this.rocks.forEach(rock => rock.setSpawnPoint(random(this.width), 0));
     requestAnimationFrame(time => this.update(time));
     window.addEventListener('keydown', event => this.onKeyDown(event.keyCode));
     window.addEventListener('keyup', event => this.onKeyUp(event.keyCode));
@@ -36,10 +37,12 @@ export default class Game {
   }
 
   spawnRock() {
-    this.rocks.push(new Rock(0, random(this.height)));
+    //this.rocks.push(new Rock(0, random(this.height)));
+    this.rocks.push(new Shard(random(this.width), 0, random(360)));
     this.rockInterval *= 0.9999;
     console.log(this.rockInterval);
     setTimeout(() => this.spawnRock(), this.rockInterval);
+    console.log(this.rocks);
   }
 
   onKeyUp(keyCode) {
@@ -92,6 +95,13 @@ export default class Game {
       this.bullets.forEach(bullet => rock.isCollide(bullet));
     });
     this.rocks = this.rocks.filter(rock => !rock.dead);
+
+    // this.shards.forEach(rock => {
+    //   rock.move(dt, this.width, this.height);
+    //   rock.isCollide(this.ship);
+    //   this.bullets.forEach(bullet => rock.isCollide(bullet));
+    // });
+    // this.shards = this.shards.filter(rock => !rock.dead);
 
     this.bullets.forEach(bullet => {
       bullet.move(dt, this.width, this.height);

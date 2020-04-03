@@ -13,7 +13,7 @@ export default class Bullet extends Entity {
       source: '/images/fire_red.png',
       width: 32,
       height: 64,
-      hitRadius: 40,
+      hitRadius: 20,
       lives: 1
     });
     this.animation = new Animation({
