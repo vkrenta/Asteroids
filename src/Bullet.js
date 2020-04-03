@@ -1,6 +1,7 @@
 import Entity from './Entity.js';
 import { ONE_DEGREE } from './helpers/index.js';
 import Animation from './Animation.js';
+import { bullet } from './helpers/images.js';
 
 export default class Bullet extends Entity {
   constructor(x, y, angle) {
@@ -10,7 +11,7 @@ export default class Bullet extends Entity {
       angle,
       dx: 0,
       dy: 0,
-      source: '/images/fire_red.png',
+      image: bullet,
       width: 32,
       height: 64,
       hitRadius: 20,

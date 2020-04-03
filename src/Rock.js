@@ -1,6 +1,7 @@
 import Entity from './Entity.js';
 import Animation from './Animation.js';
 import { random, ONE_DEGREE } from './helpers/index.js';
+import { explosion, rock } from './helpers/images.js';
 
 export default class Rock extends Entity {
   constructor(x, y) {
@@ -10,7 +11,7 @@ export default class Rock extends Entity {
       hitRadius: 31,
       width: 64,
       height: 64,
-      source: '/images/rock.png',
+      image: rock,
       dx: 0,
       dy: 0,
       angle: random(361),
@@ -24,8 +25,7 @@ export default class Rock extends Entity {
       height: 64,
       delay: 60
     });
-    this.explosion = new Image();
-    this.explosion.src = '/images/explosions/type_A.png';
+    this.explosion = explosion;
     this.explodeAnimation = new Animation({
       frames: 20,
       width: 50,
@@ -59,7 +59,6 @@ export default class Rock extends Entity {
     // super.render(ctx, this.explodeAnimation.getByX(), 0);
     this.image = this.explosion;
     this.width = 50;
-
     super.render(ctx, this.explodeAnimation.getByX(), 0);
     if (this.explodeAnimation.current + 1 === this.explodeAnimation.frames)
       this.dead = true;

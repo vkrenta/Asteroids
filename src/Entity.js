@@ -5,7 +5,7 @@ export default class Entity {
     x,
     y,
     hitRadius,
-    source,
+    image,
     width,
     height,
     dx,
@@ -20,8 +20,7 @@ export default class Entity {
     this.width = width;
     this.height = height;
     this.hitRadius = hitRadius;
-    this.image = new Image();
-    this.image.src = source;
+    this.image = image;
     this.dx = dx;
     this.dy = dy;
     this.angle = angle;

@@ -1,6 +1,7 @@
 import Entity from './Entity.js';
 import { ONE_DEGREE, SIDE } from './helpers/index.js';
 import Animation from './Animation.js';
+import { ship, explosion } from './helpers/images.js';
 
 export default class Ship extends Entity {
   constructor() {
@@ -8,7 +9,7 @@ export default class Ship extends Entity {
       x: 0,
       y: 0,
       hitRadius: 18,
-      source: 'images/spaceship.png',
+      image: ship,
       width: 40,
       height: 40,
       dx: 0,
@@ -30,8 +31,7 @@ export default class Ship extends Entity {
     this.onLifeLost = new Event('life-lost');
     this.onDeath = new Event('death');
 
-    this.explosion = new Image();
-    this.explosion.src = '/images/explosions/type_A.png';
+    this.explosion = explosion;
     this.explodeAnimation = new Animation({
       frames: 20,
       width: 50,

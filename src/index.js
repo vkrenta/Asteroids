@@ -3,6 +3,7 @@ import { SIDE, KEY, random, randomElement } from './helpers/index.js';
 import Rock from './Rock.js';
 import Bullet from './Bullet.js';
 import Shard from './Shard.js';
+import { backGround } from './helpers/images.js';
 
 export default class Game {
   constructor() {
@@ -14,7 +15,7 @@ export default class Game {
     this.height = 0;
     this.width = 0;
 
-    this.background = new Image();
+    this.background = backGround;
     this.isGame = true;
     this.isPaused = true;
     this.points = 0;
@@ -41,7 +42,6 @@ export default class Game {
   init() {
     window.addEventListener('resize', x => this.onResize());
     this.onResize();
-    this.background.src = '/images/background.jpg';
     this.ship.setSpawnPoint(this.width / 2, this.height / 2);
     requestAnimationFrame(time => this.update(time));
     window.addEventListener('keydown', event => this.onKeyDown(event.keyCode));
