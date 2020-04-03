@@ -6,23 +6,37 @@ export default class Ship extends Entity {
     super({
       x: 0,
       y: 0,
-      hitRadius: 35,
+      hitRadius: 18,
       source: 'images/spaceship.png',
       width: 40,
       height: 40,
       dx: 0,
       dy: 0,
       angle: -90,
-      velocity: 0
+      velocity: 0,
+      untouchable: false,
+      lives: 1
     });
     this.rotationSpeed = 0;
     this.isTrust = false;
-    this.maxVelocity = 1;
+    this.maxVelocity = 0.7;
     this.rotationSide = SIDE.none;
+    this.isReady = true;
+    this.time = Date.now();
+    this.coolDown = 200;
+    this.isShooting = false;
+  }
+
+  setShooting(x) {
+    this.isShooting = x;
   }
 
   setRotation(side) {
     this.rotationSide = side;
+  }
+
+  shoot() {
+    this.isReady = false;
   }
 
   rotate() {
@@ -34,6 +48,11 @@ export default class Ship extends Entity {
   }
 
   move(dt, bWidth, bHeight) {
+    if (Date.now() - this.time >= this.coolDown) {
+      this.time = Date.now();
+      this.isReady = true;
+    }
+
     if (this.isTrust) {
       this.dx += Math.cos(this.angle * ONE_DEGREE) * 0.001 * dt;
       this.dy += Math.sin(this.angle * ONE_DEGREE) * 0.001 * dt;

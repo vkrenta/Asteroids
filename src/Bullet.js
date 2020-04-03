@@ -8,12 +8,13 @@ export default class Bullet extends Entity {
       x,
       y,
       angle,
-      dx: Math.cos(angle * ONE_DEGREE),
-      dy: Math.sin(angle * ONE_DEGREE),
+      dx: 0,
+      dy: 0,
       source: '/images/fire_red.png',
       width: 32,
       height: 64,
-      hitRadius: 40
+      hitRadius: 40,
+      lives: 1
     });
     this.animation = new Animation({
       frames: 16,
@@ -22,18 +23,23 @@ export default class Bullet extends Entity {
       delay: 10
     });
     this.outOfBound = false;
-    this.dx *= 5;
-    this.dy *= 5;
   }
 
   move(dt, bWidth, bHeight) {
+    this.dx = Math.cos(this.angle * ONE_DEGREE) * 0.5 * dt;
+    this.dy = Math.sin(this.angle * ONE_DEGREE) * 0.5 * dt;
+
     this.x += this.dx;
     this.y += this.dy;
 
-    if (this.x > bWidth) this.outOfBound = true;
-    if (this.y > bHeight) this.outOfBound = true;
-    if (this.x < 0) this.outOfBound = true;
-    if (this.y < 0) this.outOfBound = true;
+    if (
+      !this.lives ||
+      this.x > bWidth ||
+      this.y > bHeight ||
+      this.x < 0 ||
+      this.y < 0
+    )
+      this.outOfBound = true;
   }
 
   render(ctx) {

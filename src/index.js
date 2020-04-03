@@ -17,9 +17,8 @@ export default class Game {
 
     this.ship = new Ship();
     this.rocks = [];
-    for (let i = 0; i <= random(30); i++) this.rocks.push(new Rock());
-
     this.bullets = [];
+    this.rockInterval = 2000;
     this.init();
   }
 
@@ -32,12 +31,22 @@ export default class Game {
     requestAnimationFrame(time => this.update(time));
     window.addEventListener('keydown', event => this.onKeyDown(event.keyCode));
     window.addEventListener('keyup', event => this.onKeyUp(event.keyCode));
+    setTimeout(() => this.spawnRock(), this.rockInterval);
+    //this.rocks.push(new Rock(0, random(this.height)));
+  }
+
+  spawnRock() {
+    this.rocks.push(new Rock(0, random(this.height)));
+    this.rockInterval *= 0.9999;
+    console.log(this.rockInterval);
+    setTimeout(() => this.spawnRock(), this.rockInterval);
   }
 
   onKeyUp(keyCode) {
     if (KEY.up.includes(keyCode)) this.ship.setTrust(false);
     if (KEY.left.includes(keyCode)) this.ship.setRotation(SIDE.none);
     if (KEY.right.includes(keyCode)) this.ship.setRotation(SIDE.none);
+    if (KEY.space.includes(keyCode)) this.ship.setShooting(false);
     //console.log(keyCode);
   }
 
@@ -45,9 +54,8 @@ export default class Game {
     if (KEY.left.includes(keyCode)) this.ship.setRotation(SIDE.left);
     if (KEY.right.includes(keyCode)) this.ship.setRotation(SIDE.right);
     if (KEY.up.includes(keyCode)) this.ship.setTrust(true);
-    if (KEY.space.includes(keyCode))
-      this.bullets.push(new Bullet(this.ship.x, this.ship.y, this.ship.angle));
-    console.log(this.bullets);
+    if (KEY.space.includes(keyCode)) this.ship.setShooting(true);
+    // console.log(this.bullets);
     // console.log(keyCode);
   }
 
@@ -62,23 +70,37 @@ export default class Game {
   update(time) {
     const dt = time - this.prevUpdateTime;
     this.prevUpdateTime = time;
-    //console.clear();
+
     this.render();
-    this.ship.setRotationSpeed(0.3 * dt);
-    this.ship.move(dt, this.width, this.height);
-    this.ship.rotate();
-    this.rocks.forEach(rock => rock.move(dt, this.width, this.height));
-    this.bullets.forEach(bullet => {
-      bullet.move(dt, this.width, this.height);
-    });
-    this.bullets = this.bullets.filter(e => !e.outOfBound);
-    //console.log(this.ship.x, this.ship.y);
-    //console.log(this.ship.dx, this.ship.dy);
+    this.move(dt);
 
     requestAnimationFrame(time => this.update(time));
   }
 
+  move(dt) {
+    this.ship.setRotationSpeed(0.3 * dt);
+    this.ship.move(dt, this.width, this.height);
+    this.ship.rotate();
+    if (this.ship.isShooting && this.ship.isReady) {
+      this.ship.shoot();
+      this.bullets.push(new Bullet(this.ship.x, this.ship.y, this.ship.angle));
+    }
+
+    this.rocks.forEach(rock => {
+      rock.move(dt, this.width, this.height);
+      rock.isCollide(this.ship);
+      this.bullets.forEach(bullet => rock.isCollide(bullet));
+    });
+    this.rocks = this.rocks.filter(rock => !rock.dead);
+
+    this.bullets.forEach(bullet => {
+      bullet.move(dt, this.width, this.height);
+    });
+    this.bullets = this.bullets.filter(e => !e.outOfBound);
+  }
+
   render() {
+    this.ctx.clearRect(0, 0, this.width, this.height);
     this.ctx.drawImage(this.background, 0, 0);
     this.ship.render(this.ctx);
     this.rocks.forEach(rock => rock.render(this.ctx));

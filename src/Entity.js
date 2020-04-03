@@ -1,4 +1,4 @@
-import { ONE_DEGREE } from './helpers/index.js';
+import { ONE_DEGREE, isCirclesCollide } from './helpers/index.js';
 
 export default class Entity {
   constructor({
@@ -11,7 +11,9 @@ export default class Entity {
     dx,
     dy,
     angle,
-    velocity
+    velocity,
+    lives = 1,
+    untouchable = false
   }) {
     this.x = x;
     this.y = y;
@@ -24,6 +26,8 @@ export default class Entity {
     this.dy = dy;
     this.angle = angle;
     this.velocity = velocity;
+    this.lives = lives;
+    this.untouchable = untouchable;
   }
 
   setSpawnPoint(x, y) {
@@ -49,5 +53,22 @@ export default class Entity {
     ctx.transform(1, 0, 0, 1, this.x, this.y);
     ctx.rotate(-((this.angle + 90) * ONE_DEGREE));
     ctx.transform(1, 0, 0, 1, -this.x, -this.y);
+  }
+
+  isCollide(entity) {
+    const result = isCirclesCollide(
+      this.x,
+      entity.x,
+      this.y,
+      entity.y,
+      this.hitRadius,
+      entity.hitRadius
+    );
+
+    if (!this.untouchable && result) {
+      if (this.lives--) entity.lives--;
+      entity.untouchable = true;
+      this.untouchable = true;
+    }
   }
 }
