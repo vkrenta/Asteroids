@@ -1,6 +1,6 @@
 import Entity from './Entity.js';
 import Animation from './Animation.js';
-import { random } from './helpers/index.js';
+import { random, ONE_DEGREE } from './helpers/index.js';
 
 export default class Rock extends Entity {
   constructor(x, y) {
@@ -11,10 +11,10 @@ export default class Rock extends Entity {
       width: 64,
       height: 64,
       source: '/images/rock.png',
-      dx: random(0.4) - 0.2,
-      dy: random(0.4) - 0.2,
-      angle: random(360),
-      velocity: 0,
+      dx: 0,
+      dy: 0,
+      angle: random(361),
+      velocity: random(0.4),
       lives: 1,
       untouchable: false
     });
@@ -32,10 +32,18 @@ export default class Rock extends Entity {
       delay: 60
     });
     this.dead = false;
+    this.isSharding = false;
+  }
+
+  setSharding(x) {
+    this.isSharding = x;
   }
 
   move(dt, bWidth, bHeight) {
     if (this.lives) {
+      this.dx = Math.cos(this.angle * ONE_DEGREE) * this.velocity;
+      this.dy = Math.sin(this.angle * ONE_DEGREE) * this.velocity;
+
       this.x += this.dx * dt;
       this.y += this.dy * dt;
 

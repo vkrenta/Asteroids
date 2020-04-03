@@ -1,5 +1,5 @@
 import Ship from './Ship.js';
-import { SIDE, KEY, random } from './helpers/index.js';
+import { SIDE, KEY, random, randomElement } from './helpers/index.js';
 import Rock from './Rock.js';
 import Bullet from './Bullet.js';
 import Shard from './Shard.js';
@@ -19,8 +19,8 @@ export default class Game {
     this.ship = new Ship();
     this.rocks = [];
     this.bullets = [];
-    // this.shards = [];
-    this.rockInterval = 2000;
+    this.shardInterval = 2000;
+    this.rockInterval = 3000;
     this.init();
   }
 
@@ -32,17 +32,25 @@ export default class Game {
     requestAnimationFrame(time => this.update(time));
     window.addEventListener('keydown', event => this.onKeyDown(event.keyCode));
     window.addEventListener('keyup', event => this.onKeyUp(event.keyCode));
-    setTimeout(() => this.spawnRock(), this.rockInterval);
-    //this.rocks.push(new Rock(0, random(this.height)));
+    setTimeout(() => this.spawnShards(), this.shardInterval);
+    setTimeout(() => this.spawnRocks(), this.rockInterval);
   }
 
-  spawnRock() {
-    //this.rocks.push(new Rock(0, random(this.height)));
-    this.rocks.push(new Shard(random(this.width), 0, random(360)));
+  spawnRocks() {
+    this.rocks.push(
+      new Rock(randomElement([0, this.width]), randomElement([0, this.height]))
+    );
     this.rockInterval *= 0.9999;
-    console.log(this.rockInterval);
-    setTimeout(() => this.spawnRock(), this.rockInterval);
-    console.log(this.rocks);
+    setTimeout(() => this.spawnRocks(), this.rockInterval);
+  }
+
+  spawnShards() {
+    this.rocks.push(
+      new Shard(randomElement([0, this.width]), randomElement([0, this.height]))
+    );
+    this.shardInterval *= 0.9999;
+    console.log(this.shardInterval);
+    setTimeout(() => this.spawnShards(), this.shardInterval);
   }
 
   onKeyUp(keyCode) {
@@ -93,15 +101,14 @@ export default class Game {
       rock.move(dt, this.width, this.height);
       rock.isCollide(this.ship);
       this.bullets.forEach(bullet => rock.isCollide(bullet));
+      if (rock.constructor.name === 'Rock' && !rock.isSharding && !rock.lives) {
+        rock.setSharding(true);
+        this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 30));
+        this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 150));
+        this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 270));
+      }
     });
     this.rocks = this.rocks.filter(rock => !rock.dead);
-
-    // this.shards.forEach(rock => {
-    //   rock.move(dt, this.width, this.height);
-    //   rock.isCollide(this.ship);
-    //   this.bullets.forEach(bullet => rock.isCollide(bullet));
-    // });
-    // this.shards = this.shards.filter(rock => !rock.dead);
 
     this.bullets.forEach(bullet => {
       bullet.move(dt, this.width, this.height);

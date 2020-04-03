@@ -9,6 +9,9 @@ export const KEY = {
   space: [32]
 };
 
+export const randomElement = array =>
+  array[Math.floor(Math.random() * array.length)];
+
 export const isCirclesCollide = (x1, x2, y1, y2, r1, r2) => {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2) <= r1 + r2;
 };
