@@ -6,7 +6,8 @@ export const KEY = {
   left: [37, 65],
   right: [39, 68],
   up: [38, 87],
-  space: [32]
+  space: [32],
+  enter: [13]
 };
 
 export const randomElement = array =>

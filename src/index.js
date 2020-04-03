@@ -15,6 +15,9 @@ export default class Game {
     this.width = 0;
 
     this.background = new Image();
+    this.isGame = true;
+    this.isPaused = true;
+    this.points = 0;
 
     this.ship = new Ship();
     this.rocks = [];
@@ -22,6 +25,17 @@ export default class Game {
     this.shardInterval = 2000;
     this.rockInterval = 3000;
     this.init();
+  }
+
+  restart() {
+    this.isGame = true;
+    this.ship = new Ship();
+    this.ship.setSpawnPoint(this.width / 2, this.height / 2);
+    this.rocks = [];
+    this.bullets = [];
+    this.shardInterval = 2000;
+    this.rockInterval = 3000;
+    this.points = 0;
   }
 
   init() {
@@ -34,23 +48,46 @@ export default class Game {
     window.addEventListener('keyup', event => this.onKeyUp(event.keyCode));
     setTimeout(() => this.spawnShards(), this.shardInterval);
     setTimeout(() => this.spawnRocks(), this.rockInterval);
+    window.addEventListener('life-lost', () => this.onLifeLost());
+    window.addEventListener('death', () => this.onDie());
+    window.addEventListener('rock', () => (this.points += 3));
+    window.addEventListener('shard', () => (this.points += 1));
+  }
+
+  onDie() {
+    this.isGame = false;
+  }
+
+  onLifeLost() {
+    this.ship.setSpawnPoint(this.width / 2, this.height / 2);
+    this.ship.respawn();
   }
 
   spawnRocks() {
-    this.rocks.push(
-      new Rock(randomElement([0, this.width]), randomElement([0, this.height]))
-    );
-    this.rockInterval *= 0.9999;
+    if (!this.isPaused) {
+      this.rocks.push(
+        new Rock(
+          randomElement([0, this.width]),
+          randomElement([0, this.height])
+        )
+      );
+      this.rockInterval *= 0.9999;
+    }
     setTimeout(() => this.spawnRocks(), this.rockInterval);
   }
 
   spawnShards() {
-    this.rocks.push(
-      new Shard(randomElement([0, this.width]), randomElement([0, this.height]))
-    );
-    this.shardInterval *= 0.9999;
-    console.log(this.shardInterval);
+    if (!this.isPaused) {
+      this.rocks.push(
+        new Shard(
+          randomElement([0, this.width]),
+          randomElement([0, this.height])
+        )
+      );
+      this.shardInterval *= 0.9999;
+    }
     setTimeout(() => this.spawnShards(), this.shardInterval);
+    //console.log(this.shardInterval);
   }
 
   onKeyUp(keyCode) {
@@ -66,6 +103,9 @@ export default class Game {
     if (KEY.right.includes(keyCode)) this.ship.setRotation(SIDE.right);
     if (KEY.up.includes(keyCode)) this.ship.setTrust(true);
     if (KEY.space.includes(keyCode)) this.ship.setShooting(true);
+    if (KEY.enter.includes(keyCode) && this.isGame)
+      this.isPaused = !this.isPaused;
+    if (KEY.enter.includes(keyCode) && !this.isGame) this.restart();
     // console.log(this.bullets);
     // console.log(keyCode);
   }
@@ -83,7 +123,7 @@ export default class Game {
     this.prevUpdateTime = time;
 
     this.render();
-    this.move(dt);
+    if (this.isGame && !this.isPaused) this.move(dt);
 
     requestAnimationFrame(time => this.update(time));
   }
@@ -122,6 +162,27 @@ export default class Game {
     this.ship.render(this.ctx);
     this.rocks.forEach(rock => rock.render(this.ctx));
     this.bullets.forEach(bullet => bullet.render(this.ctx));
+    this.ctx.font = '40px Arial';
+    this.ctx.fillStyle = 'white';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText(`L: ${this.ship.lives}`, 10, 50);
+    this.ctx.textAlign = 'right';
+    this.ctx.fillText(`${this.points}`, this.width - 10, 50);
+    this.ctx.textAlign = 'center';
+    this.ctx.font = '70px Arial';
+    if (this.isPaused)
+      this.ctx.fillText(
+        'Game is paused, press Enter to continue',
+        this.width / 2,
+        this.height / 2
+      );
+
+    if (!this.isGame)
+      this.ctx.fillText(
+        'Game is over, press Enter to restart',
+        this.width / 2,
+        this.height / 2
+      );
   }
 }
 

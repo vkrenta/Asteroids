@@ -1,4 +1,4 @@
-``npm install`` <br>
-``npm run start`` for dev build or ``npm run production`` for prod build <br>
-open ``localhost:3000`` in your favorite browser <br>
-have fun
+`npm i` <br>
+`npm run start` <br>
+Open `http://127.0.0.1:8080/` in browser<br>
+press Enter to begin/pause

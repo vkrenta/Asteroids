@@ -1,5 +1,6 @@
 import Entity from './Entity.js';
 import { ONE_DEGREE, SIDE } from './helpers/index.js';
+import Animation from './Animation.js';
 
 export default class Ship extends Entity {
   constructor() {
@@ -15,7 +16,7 @@ export default class Ship extends Entity {
       angle: -90,
       velocity: 0,
       untouchable: false,
-      lives: 1
+      lives: 3
     });
     this.rotationSpeed = 0;
     this.isTrust = false;
@@ -25,6 +26,38 @@ export default class Ship extends Entity {
     this.time = Date.now();
     this.coolDown = 200;
     this.isShooting = false;
+    this.invulnerabilityDelay = 1000;
+    this.onLifeLost = new Event('life-lost');
+    this.onDeath = new Event('death');
+
+    this.explosion = new Image();
+    this.explosion.src = '/images/explosions/type_A.png';
+    this.explodeAnimation = new Animation({
+      frames: 20,
+      width: 50,
+      delay: 60
+    });
+    this.dead = false;
+  }
+
+  _onCollide(collider) {
+    if (
+      (collider.constructor.name === 'Rock' ||
+        collider.constructor.name === 'Shard') &&
+      !this.untouchable
+    ) {
+      this.lives--;
+      if (!this.lives) return dispatchEvent(this.onDeath);
+      dispatchEvent(this.onLifeLost);
+      this.untouchable = true;
+      setInterval(() => (this.untouchable = false), this.invulnerabilityDelay);
+    }
+  }
+
+  respawn() {
+    this.dx = 0;
+    this.dy = 0;
+    this.angle = -90;
   }
 
   setShooting(x) {
@@ -48,6 +81,8 @@ export default class Ship extends Entity {
   }
 
   move(dt, bWidth, bHeight) {
+    if (!this.lives) return;
+
     if (Date.now() - this.time >= this.coolDown) {
       this.time = Date.now();
       this.isReady = true;
@@ -81,6 +116,12 @@ export default class Ship extends Entity {
   }
 
   render(ctx) {
-    super.render(ctx, 40, 0);
+    if (this.lives) return super.render(ctx, 40, 0);
+
+    this.image = this.explosion;
+    this.width = 50;
+    this.height = 50;
+
+    super.render(ctx, this.explodeAnimation.getByX(), 0);
   }
 }

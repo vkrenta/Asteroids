@@ -55,6 +55,8 @@ export default class Entity {
     ctx.transform(1, 0, 0, 1, -this.x, -this.y);
   }
 
+  _onCollide(collider) {}
+
   isCollide(entity) {
     const result = isCirclesCollide(
       this.x,
@@ -66,9 +68,9 @@ export default class Entity {
     );
 
     if (!this.untouchable && result) {
-      if (this.lives--) entity.lives--;
-      entity.untouchable = true;
+      this.lives--;
       this.untouchable = true;
+      entity._onCollide(this);
     }
   }
 }

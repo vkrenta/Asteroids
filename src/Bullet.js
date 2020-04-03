@@ -23,6 +23,13 @@ export default class Bullet extends Entity {
       delay: 10
     });
     this.outOfBound = false;
+    this.onRock = new Event('rock');
+    this.onShard = new Event('shard');
+  }
+
+  _onCollide(collider) {
+    if (collider.constructor.name === 'Rock') dispatchEvent(this.onRock);
+    if (collider.constructor.name === 'Shard') dispatchEvent(this.onShard);
   }
 
   move(dt, bWidth, bHeight) {
