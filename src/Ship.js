@@ -1,6 +1,5 @@
 import Entity from './Entity.js';
 import { ONE_DEGREE, SIDE } from './helpers/index.js';
-import Animation from './Animation.js';
 import { ship, explosion } from './helpers/images.js';
 
 export default class Ship extends Entity {
@@ -17,47 +16,41 @@ export default class Ship extends Entity {
       angle: -90,
       velocity: 0,
       untouchable: false,
-      lives: 3
+      lives: 3,
     });
     this.rotationSpeed = 0;
     this.isTrust = false;
-    this.maxVelocity = 0.7;
+    this.maxVelocity = 0.05;
     this.rotationSide = SIDE.none;
     this.isReady = true;
-    this.time = Date.now();
-    this.coolDown = 200;
+    this.coolDown = 50;
     this.isShooting = false;
     this.invulnerabilityDelay = 1000;
     this.onLifeLost = new Event('life-lost');
     this.onDeath = new Event('death');
 
     this.explosion = explosion;
-    this.explodeAnimation = new Animation({
-      frames: 20,
-      width: 50,
-      delay: 60
-    });
     this.dead = false;
   }
 
-  _onCollide(collider) {
-    if (
-      (collider.constructor.name === 'Rock' ||
-        collider.constructor.name === 'Shard') &&
-      !this.untouchable
-    ) {
-      this.lives--;
-      if (!this.lives) return dispatchEvent(this.onDeath);
-      dispatchEvent(this.onLifeLost);
-      this.untouchable = true;
-      setInterval(() => (this.untouchable = false), this.invulnerabilityDelay);
-    }
+  set invulnerability(value) {
+    if (value >= 0) return (this._invulnerability = value);
+    this._invulnerability = 0;
+    this.untouchable = false;
   }
 
-  respawn() {
-    this.dx = 0;
-    this.dy = 0;
-    this.angle = -90;
+  get invulnerability() {
+    return this._invulnerability;
+  }
+
+  set rechargingTime(value) {
+    if (value >= 0) return (this._rechargingTime = value);
+    this._rechargingTime = 0;
+    this.isReady = true;
+  }
+
+  get rechargingTime() {
+    return this._rechargingTime;
   }
 
   setShooting(x) {
@@ -70,23 +63,31 @@ export default class Ship extends Entity {
 
   shoot() {
     this.isReady = false;
+    this.rechargingTime = this.coolDown;
+  }
+
+  respawn(x, y) {
+    this.untouchable = true;
+    this.invulnerability = this.invulnerabilityDelay;
+    this.x = x;
+    this.y = y;
+    this.dx = 0;
+    this.dy = 0;
+    this.angle = -90;
   }
 
   rotate() {
-    this.angle += this.rotationSide * this.rotationSpeed;
-  }
-
-  setRotationSpeed(degrees) {
-    this.rotationSpeed = degrees;
+    this.angle += this.rotationSide * this.rotationAngle;
   }
 
   move(dt, bWidth, bHeight) {
+    this.dt = dt;
+    this.invulnerability -= dt;
+    this.rechargingTime -= dt;
+    console.log(this.invulnerability);
     if (!this.lives) return;
 
-    if (Date.now() - this.time >= this.coolDown) {
-      this.time = Date.now();
-      this.isReady = true;
-    }
+    this.rotationAngle = 0.3 * dt;
 
     if (this.isTrust) {
       this.dx += Math.cos(this.angle * ONE_DEGREE) * 0.001 * dt;
@@ -96,7 +97,7 @@ export default class Ship extends Entity {
       this.dy *= 0.995;
     }
 
-    this.velocity = Math.sqrt(this.dx ** 2 + this.dy ** 2);
+    this.velocity = Math.sqrt(this.dx ** 2 + this.dy ** 2) / dt;
     if (this.velocity > this.maxVelocity) {
       this.dx *= this.maxVelocity / this.velocity;
       this.dy *= this.maxVelocity / this.velocity;
@@ -111,17 +112,22 @@ export default class Ship extends Entity {
   }
 
   setTrust(trust) {
-    if (trust) return (this.isTrust = true);
-    this.isTrust = false;
+    this.isTrust = trust;
   }
 
-  render(ctx) {
+  render(ctx, dt) {
     if (this.lives) return super.render(ctx, 40, 0);
+  }
 
-    this.image = this.explosion;
-    this.width = 50;
-    this.height = 50;
-
-    super.render(ctx, this.explodeAnimation.getByX(), 0);
+  _onCollide(collider) {
+    if (
+      (collider.constructor.name === 'Rock' ||
+        collider.constructor.name === 'Shard') &&
+      !this.untouchable
+    ) {
+      this.lives--;
+      if (!this.lives) return dispatchEvent(this.onDeath);
+      dispatchEvent(this.onLifeLost);
+    }
   }
 }

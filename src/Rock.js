@@ -1,7 +1,7 @@
 import Entity from './Entity.js';
 import Animation from './Animation.js';
 import { random, ONE_DEGREE } from './helpers/index.js';
-import { explosion, rock } from './helpers/images.js';
+import { rock } from './helpers/images.js';
 
 export default class Rock extends Entity {
   constructor(x, y) {
@@ -17,19 +17,12 @@ export default class Rock extends Entity {
       angle: random(361),
       velocity: random(0.4),
       lives: 1,
-      untouchable: false
+      untouchable: false,
     });
     this.animation = new Animation({
       frames: 16,
       width: 64,
-      height: 64,
-      delay: 60
-    });
-    this.explosion = explosion;
-    this.explodeAnimation = new Animation({
-      frames: 20,
-      width: 50,
-      delay: 60
+      delay: 60,
     });
     this.dead = false;
     this.isSharding = false;
@@ -40,6 +33,7 @@ export default class Rock extends Entity {
   }
 
   move(dt, bWidth, bHeight) {
+    this.dt = dt;
     if (this.lives) {
       this.dx = Math.cos(this.angle * ONE_DEGREE) * this.velocity;
       this.dy = Math.sin(this.angle * ONE_DEGREE) * this.velocity;
@@ -54,13 +48,9 @@ export default class Rock extends Entity {
     }
   }
 
-  render(ctx) {
-    if (this.lives) return super.render(ctx, this.animation.getByX(), 0);
+  render(ctx, dt) {
+    if (this.lives) return super.render(ctx, this.animation.getByX(dt), 0);
+    this.dead = true;
     // super.render(ctx, this.explodeAnimation.getByX(), 0);
-    this.image = this.explosion;
-    this.width = 50;
-    super.render(ctx, this.explodeAnimation.getByX(), 0);
-    if (this.explodeAnimation.current + 1 === this.explodeAnimation.frames)
-      this.dead = true;
   }
 }

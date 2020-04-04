@@ -1,9 +1,10 @@
 import Ship from './Ship.js';
-import { SIDE, KEY, random, randomElement } from './helpers/index.js';
+import { SIDE, KEY, randomElement } from './helpers/index.js';
 import Rock from './Rock.js';
 import Bullet from './Bullet.js';
 import Shard from './Shard.js';
 import { backGround } from './helpers/images.js';
+import Explosion from './Explosion.js';
 
 export default class Game {
   constructor() {
@@ -23,6 +24,7 @@ export default class Game {
     this.ship = new Ship();
     this.rocks = [];
     this.bullets = [];
+    this.explosions = [];
     this.shardInterval = 2000;
     this.rockInterval = 3000;
     this.init();
@@ -31,7 +33,7 @@ export default class Game {
   restart() {
     this.isGame = true;
     this.ship = new Ship();
-    this.ship.setSpawnPoint(this.width / 2, this.height / 2);
+    this.ship.respawn(this.width / 2, this.height / 2);
     this.rocks = [];
     this.bullets = [];
     this.shardInterval = 2000;
@@ -40,12 +42,14 @@ export default class Game {
   }
 
   init() {
-    window.addEventListener('resize', x => this.onResize());
+    window.addEventListener('resize', (x) => this.onResize());
     this.onResize();
-    this.ship.setSpawnPoint(this.width / 2, this.height / 2);
-    requestAnimationFrame(time => this.update(time));
-    window.addEventListener('keydown', event => this.onKeyDown(event.keyCode));
-    window.addEventListener('keyup', event => this.onKeyUp(event.keyCode));
+    this.ship.respawn(this.width / 2, this.height / 2);
+    requestAnimationFrame((time) => this.update(time));
+    window.addEventListener('keydown', (event) =>
+      this.onKeyDown(event.keyCode)
+    );
+    window.addEventListener('keyup', (event) => this.onKeyUp(event.keyCode));
     setTimeout(() => this.spawnShards(), this.shardInterval);
     setTimeout(() => this.spawnRocks(), this.rockInterval);
     window.addEventListener('life-lost', () => this.onLifeLost());
@@ -59,8 +63,8 @@ export default class Game {
   }
 
   onLifeLost() {
-    this.ship.setSpawnPoint(this.width / 2, this.height / 2);
-    this.ship.respawn();
+    this.explosions.push(new Explosion(this.ship.x, this.ship.y));
+    this.ship.respawn(this.width / 2, this.height / 2);
   }
 
   spawnRocks() {
@@ -87,7 +91,7 @@ export default class Game {
       this.shardInterval *= 0.9999;
     }
     setTimeout(() => this.spawnShards(), this.shardInterval);
-    //console.log(this.shardInterval);
+    // console.log(this.shardInterval);
   }
 
   onKeyUp(keyCode) {
@@ -95,7 +99,7 @@ export default class Game {
     if (KEY.left.includes(keyCode)) this.ship.setRotation(SIDE.none);
     if (KEY.right.includes(keyCode)) this.ship.setRotation(SIDE.none);
     if (KEY.space.includes(keyCode)) this.ship.setShooting(false);
-    //console.log(keyCode);
+    // console.log(keyCode);
   }
 
   onKeyDown(keyCode) {
@@ -122,14 +126,13 @@ export default class Game {
     const dt = time - this.prevUpdateTime;
     this.prevUpdateTime = time;
 
-    this.render();
+    this.render(dt);
     if (this.isGame && !this.isPaused) this.move(dt);
 
-    requestAnimationFrame(time => this.update(time));
+    requestAnimationFrame((time) => this.update(time));
   }
 
   move(dt) {
-    this.ship.setRotationSpeed(0.3 * dt);
     this.ship.move(dt, this.width, this.height);
     this.ship.rotate();
     if (this.ship.isShooting && this.ship.isReady) {
@@ -137,31 +140,37 @@ export default class Game {
       this.bullets.push(new Bullet(this.ship.x, this.ship.y, this.ship.angle));
     }
 
-    this.rocks.forEach(rock => {
+    this.rocks.forEach((rock) => {
       rock.move(dt, this.width, this.height);
       rock.isCollide(this.ship);
-      this.bullets.forEach(bullet => rock.isCollide(bullet));
-      if (rock.constructor.name === 'Rock' && !rock.isSharding && !rock.lives) {
-        rock.setSharding(true);
-        this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 30));
-        this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 150));
-        this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 270));
+      this.bullets.forEach((bullet) => rock.isCollide(bullet));
+      if (rock.dead) {
+        this.explosions.push(new Explosion(rock.x, rock.y));
+        if (rock.constructor.name === 'Rock') {
+          rock.setSharding(true);
+          this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 30));
+          this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 150));
+          this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 270));
+        }
       }
     });
-    this.rocks = this.rocks.filter(rock => !rock.dead);
+    this.explosions = this.explosions.filter((explosion) => !explosion.dead);
+    this.rocks = this.rocks.filter((rock) => !rock.dead);
 
-    this.bullets.forEach(bullet => {
+    this.bullets.forEach((bullet) => {
       bullet.move(dt, this.width, this.height);
     });
-    this.bullets = this.bullets.filter(e => !e.outOfBound);
+    this.bullets = this.bullets.filter((e) => !e.outOfBound);
   }
 
-  render() {
+  render(dt) {
     this.ctx.clearRect(0, 0, this.width, this.height);
     this.ctx.drawImage(this.background, 0, 0);
-    this.ship.render(this.ctx);
-    this.rocks.forEach(rock => rock.render(this.ctx));
-    this.bullets.forEach(bullet => bullet.render(this.ctx));
+    this.ship.render(this.ctx, dt);
+    this.rocks.forEach((rock) => rock.render(this.ctx, dt));
+    this.bullets.forEach((bullet) => bullet.render(this.ctx, dt));
+    this.explosions.forEach((explosion) => explosion.render(this.ctx, dt));
+
     this.ctx.font = '40px Arial';
     this.ctx.fillStyle = 'white';
     this.ctx.textAlign = 'left';
@@ -186,4 +195,5 @@ export default class Game {
   }
 }
 
+// eslint-disable-next-line no-new
 new Game();

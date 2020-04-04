@@ -15,13 +15,13 @@ export default class Bullet extends Entity {
       width: 32,
       height: 64,
       hitRadius: 20,
-      lives: 1
+      lives: 1,
     });
     this.animation = new Animation({
       frames: 16,
       width: 32,
       height: 64,
-      delay: 10
+      delay: 100,
     });
     this.outOfBound = false;
     this.onRock = new Event('rock');
@@ -29,13 +29,15 @@ export default class Bullet extends Entity {
   }
 
   _onCollide(collider) {
+    if (this.lives) this.lives--;
     if (collider.constructor.name === 'Rock') dispatchEvent(this.onRock);
     if (collider.constructor.name === 'Shard') dispatchEvent(this.onShard);
   }
 
   move(dt, bWidth, bHeight) {
-    this.dx = Math.cos(this.angle * ONE_DEGREE) * 0.5 * dt;
-    this.dy = Math.sin(this.angle * ONE_DEGREE) * 0.5 * dt;
+    this.dt = dt;
+    this.dx = Math.cos(this.angle * ONE_DEGREE) * 0.5 * this.dt;
+    this.dy = Math.sin(this.angle * ONE_DEGREE) * 0.5 * this.dt;
 
     this.x += this.dx;
     this.y += this.dy;
@@ -50,7 +52,7 @@ export default class Bullet extends Entity {
       this.outOfBound = true;
   }
 
-  render(ctx) {
-    super.render(ctx, this.animation.getByX(), 0);
+  render(ctx, dt) {
+    super.render(ctx, this.animation.getByX(dt), 0);
   }
 }
