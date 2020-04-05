@@ -23,15 +23,13 @@ export default class Ship extends Entity {
     this.isTrust = false;
     this.maxVelocity = 0.05;
     this.rotationSide = SIDE.none;
-    this.isReady = true;
-    this.coolDown = 50;
+    this.coolDown = 500;
     this.isShooting = false;
     this.invulnerabilityDelay = 1000;
     this.onLifeLost = new Event('life-lost');
     this.onDeath = new Event('death');
     this.untouchable = true;
-    this.rechargingTime = this.coolDown;
-
+    this.rechargingTime = 0;
     this.explosion = explosion;
     this.bullets = [];
   }
@@ -48,13 +46,23 @@ export default class Ship extends Entity {
 
   set rechargingTime(value) {
     if (value > 0) return (this._rechargingTime = value);
-    if (this.isShooting)
+    if (this.isShooting) {
       this.bullets.push(new Bullet(this.x, this.y, this.angle));
-    this._rechargingTime = value + this.coolDown;
+      this._rechargingTime = value + this.coolDown;
+    } else this._rechargingTime = 0;
   }
 
   get rechargingTime() {
     return this._rechargingTime;
+  }
+
+  get coolDown() {
+    return this._coolDown;
+  }
+
+  set coolDown(value) {
+    if (value >= 20) this._coolDown = value;
+    else this.coolDown = 20;
   }
 
   respawn(x, y) {
@@ -87,13 +95,7 @@ export default class Ship extends Entity {
       this.dy *= 0.995;
     }
 
-    this.velocity = Math.sqrt(this.dx ** 2 + this.dy ** 2) / dt;
-    if (this.velocity > this.maxVelocity) {
-      this.dx *= this.maxVelocity / this.velocity;
-      this.dy *= this.maxVelocity / this.velocity;
-    }
-    this.x += this.dx * dt;
-    this.y += this.dy * dt;
+    super.move(dt);
 
     if (this.x > bWidth) this.x = 0;
     if (this.y > bHeight) this.y = 0;
@@ -106,7 +108,10 @@ export default class Ship extends Entity {
   }
 
   render(ctx, dt) {
-    if (!this.dead) return super.render(ctx, 40, 0);
+    if (this.dead) return;
+    if (this.rotationSide === SIDE.none) super.render(ctx, 40, 0);
+    if (this.rotationSide === SIDE.left) super.render(ctx, -1, 0);
+    if (this.rotationSide === SIDE.right) super.render(ctx, 80, 0);
   }
 
   _onCollide(collider) {

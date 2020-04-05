@@ -1,13 +1,14 @@
 import Ship from './Ship.js';
-import { SIDE, KEY, randomElement } from './helpers/index.js';
+import { SIDE, KEY, randomElement, random } from './helpers/index.js';
 import Rock from './Rock.js';
-// import Bullet from './Bullet.js';
 import Shard from './Shard.js';
 import { backGround } from './helpers/images.js';
 import Explosion from './Explosion.js';
 
 const SHARD_INTERVAL = 2000;
 const ROCK_INTERVAL = 5000;
+const START_ROCK_VELOCITY = 0.005;
+const MAX_ROCK_VELOCITY = 0.05;
 
 export default class Game {
   constructor() {
@@ -23,15 +24,18 @@ export default class Game {
     this.isGame = true;
     this.isPaused = true;
     this.points = 0;
+    this.lifePoints = 0;
+    this.rechargePoints = 0;
+    this.highScore = 0;
 
     this.ship = new Ship();
-
-    // this.bullets = this.ship.bullets;
 
     this.rocks = [];
     this.explosions = [];
     this.shardInterval = SHARD_INTERVAL;
     this.rockInterval = ROCK_INTERVAL;
+    this.rockVelocity = START_ROCK_VELOCITY;
+    this.shardVelocity = START_ROCK_VELOCITY * 2;
     this.timeToShard = this.shardInterval;
     this.timeToRock = this.rockInterval;
     this.init();
@@ -75,16 +79,51 @@ export default class Game {
     return this._rockInterval;
   }
 
+  get points() {
+    return this._points;
+  }
+
+  set points(value) {
+    this._points = value;
+  }
+
+  get rechargePoints() {
+    return this._rechargePoints;
+  }
+
+  set rechargePoints(value) {
+    if (value >= 50) {
+      this.ship.coolDown -= 10;
+      this._rechargePoints = value - 50;
+    } else this._rechargePoints = value;
+  }
+
+  get lifePoints() {
+    return this._lifePoints;
+  }
+
+  set lifePoints(value) {
+    if (value >= 500) {
+      this.ship.lives++;
+      this._lifePoints = value - 500;
+    } else this._lifePoints = value;
+  }
+
   restart() {
     this.isGame = true;
     this.ship = new Ship();
     this.ship.respawn(this.width / 2, this.height / 2);
-    this.rocks = [];
-
-    this.shardInterval = 2000;
-    this.rockInterval = 3000;
-
     this.points = 0;
+    this.lifePoints = 0;
+    this.rechargePoints = 0;
+    this.rocks = [];
+    this.explosions = [];
+    this.shardInterval = SHARD_INTERVAL;
+    this.rockInterval = ROCK_INTERVAL;
+    this.rockVelocity = START_ROCK_VELOCITY;
+    this.shardVelocity = START_ROCK_VELOCITY * 2;
+    this.timeToShard = this.shardInterval;
+    this.timeToRock = this.rockInterval;
   }
 
   init() {
@@ -98,12 +137,30 @@ export default class Game {
     window.addEventListener('keyup', (event) => this.onKeyUp(event.keyCode));
     window.addEventListener('life-lost', () => this.onLifeLost());
     window.addEventListener('death', () => this.onDie());
-    window.addEventListener('rock', () => (this.points += 3));
-    window.addEventListener('shard', () => (this.points += 1));
+    window.addEventListener('rock', () => this.onRock());
+    window.addEventListener('shard', () => this.onShard());
+  }
+
+  onRock() {
+    this.points += 10 + Math.round(this.ship.velocity * 500);
+    this.rechargePoints += 10 + Math.round(this.ship.velocity * 500);
+    this.lifePoints += 10 + Math.round(this.ship.velocity * 500);
+  }
+
+  onShard() {
+    this.points += 1 + Math.round(this.ship.velocity * 500);
+    this.rechargePoints += 1 + Math.round(this.ship.velocity * 500);
+    this.lifePoints += 1 + Math.round(this.ship.velocity * 500);
   }
 
   onDie() {
+    // high score in local storage
     this.isGame = false;
+    this.highScore = this.points;
+    const prevScore = Number(localStorage.getItem('high_score'));
+    if (isNaN(prevScore) || prevScore < this.highScore)
+      localStorage.setItem('high_score', `${this.highScore}`);
+    else this.highScore = prevScore;
   }
 
   onLifeLost() {
@@ -113,17 +170,28 @@ export default class Game {
 
   spawnRocks() {
     this.rocks.push(
-      new Rock(randomElement([0, this.width]), randomElement([0, this.height]))
+      new Rock(
+        randomElement([0, this.width]),
+        randomElement([0, this.height]),
+        this.rockVelocity
+      )
     );
+    if (this.rockVelocity < MAX_ROCK_VELOCITY) this.rockVelocity *= 1.0001;
     this.rockInterval *= 0.9999;
   }
+  // with every tick interval decreases, velocity ups, rocks spawn
 
   spawnShards() {
     this.rocks.push(
-      new Shard(randomElement([0, this.width]), randomElement([0, this.height]))
+      new Shard(
+        randomElement([0, this.width]),
+        randomElement([0, this.height]),
+        random(361),
+        this.shardVelocity
+      )
     );
+    if (this.rockVelocity < MAX_ROCK_VELOCITY * 2) this.shardVelocity *= 1.0001;
     this.shardInterval *= 0.9999;
-    // console.log(Date.now());
   }
 
   onKeyUp(keyCode) {
@@ -144,6 +212,7 @@ export default class Game {
     if (KEY.enter.includes(keyCode) && this.isGame)
       this.isPaused = !this.isPaused;
     if (KEY.enter.includes(keyCode) && !this.isGame) this.restart();
+    if (KEY.r.includes(keyCode)) this.restart();
     // console.log(keyCode);
   }
 
@@ -169,8 +238,8 @@ export default class Game {
     this.ship.move(dt, this.width, this.height);
     this.ship.rotate();
 
-    this.timeToRock -= dt;
-    this.timeToShard -= dt;
+    this.timeToRock -= dt; // spawns new rock when it equal to zero
+    this.timeToShard -= dt; // spawns new shard when it equal to zero
 
     this.rocks.forEach((rock) => {
       rock.move(dt, this.width, this.height);
@@ -179,13 +248,14 @@ export default class Game {
       if (rock.dead) {
         this.explosions.push(new Explosion(rock.x, rock.y));
         if (rock.constructor.name === 'Rock') {
-          rock.setSharding(true);
+          // spawn 3 shards after exploding big rocks
           this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 30));
           this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 150));
           this.rocks.push(new Shard(rock.x, rock.y, rock.angle - 270));
         }
       }
     });
+    // deleting dead objects from memory
     this.explosions = this.explosions.filter((explosion) => !explosion.dead);
     this.rocks = this.rocks.filter((rock) => !rock.dead);
 
@@ -215,15 +285,24 @@ export default class Game {
       this.ctx.fillText(
         'Game is paused, press Enter to continue',
         this.width / 2,
-        this.height / 2
+        this.height / 2,
+        this.width
       );
 
-    if (!this.isGame)
+    if (!this.isGame) {
       this.ctx.fillText(
-        'Game is over, press Enter to restart',
+        `Game is over, press Enter to restart`,
         this.width / 2,
-        this.height / 2
+        this.height / 2 - 40,
+        this.width
       );
+      this.ctx.fillText(
+        `High score: ${this.highScore}`,
+        this.width / 2,
+        this.height / 2 + 40,
+        this.width
+      );
+    }
   }
 }
 

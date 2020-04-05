@@ -26,7 +26,6 @@ export default class Entity {
     this.velocity = velocity;
     this.lives = lives;
     this.dead = false;
-    this.isRock = false;
   }
 
   set lives(value) {
@@ -39,12 +38,28 @@ export default class Entity {
     return this._lives;
   }
 
+  set velocity(value) {
+    if (value <= this.maxVelocity) return (this._velocity = value);
+    this._velocity = this.maxVelocity;
+    this.dx *= this.maxVelocity / value;
+    this.dy *= this.maxVelocity / value;
+  }
+
+  get velocity() {
+    return this._velocity;
+  }
+
   setSpawnPoint(x, y) {
     this.x = x;
     this.y = y;
   }
 
-  move(dt) {}
+  move(dt) {
+    this.velocity = Math.sqrt(this.dx ** 2 + this.dy ** 2) / dt;
+
+    this.x += this.dx * dt;
+    this.y += this.dy * dt;
+  }
 
   render(ctx, sx, sy) {
     ctx.transform(1, 0, 0, 1, this.x, this.y);

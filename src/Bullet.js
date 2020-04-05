@@ -29,7 +29,8 @@ export default class Bullet extends Entity {
 
   _onCollide(collider) {
     if (this.lives) this.lives--;
-    if (collider.constructor.name === 'Rock') dispatchEvent(this.onRock);
+    if (collider.constructor.name === 'Rock' && collider.dead)
+      dispatchEvent(this.onRock);
     if (collider.constructor.name === 'Shard') dispatchEvent(this.onShard);
   }
 

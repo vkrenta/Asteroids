@@ -4,7 +4,7 @@ import { random, ONE_DEGREE } from './helpers/index.js';
 import { rock } from './helpers/images.js';
 
 export default class Rock extends Entity {
-  constructor(x, y) {
+  constructor(x, y, maxVelocity = 0.01) {
     super({
       x,
       y,
@@ -15,7 +15,6 @@ export default class Rock extends Entity {
       dx: 0,
       dy: 0,
       angle: random(361),
-      velocity: random(0.4),
       lives: 3,
       untouchable: false,
     });
@@ -25,29 +24,21 @@ export default class Rock extends Entity {
       delay: 60,
     });
     this.dead = false;
-    this.isSharding = false;
-    this.isRock = true;
-  }
-
-  setSharding(x) {
-    this.isSharding = x;
+    this.maxVelocity = maxVelocity;
+    this.velocity = random(this.maxVelocity);
   }
 
   move(dt, bWidth, bHeight) {
-    if (!this.lives) return (this.dead = true);
-    this.dt = dt;
-    if (this.lives) {
-      this.dx = Math.cos(this.angle * ONE_DEGREE) * this.velocity;
-      this.dy = Math.sin(this.angle * ONE_DEGREE) * this.velocity;
+    const k = this.velocity * dt;
+    this.dx = Math.cos(this.angle * ONE_DEGREE) * k;
+    this.dy = Math.sin(this.angle * ONE_DEGREE) * k;
 
-      this.x += this.dx * dt;
-      this.y += this.dy * dt;
+    super.move(dt);
 
-      if (this.x > bWidth) this.x = 0;
-      if (this.y > bHeight) this.y = 0;
-      if (this.x < 0) this.x = bWidth;
-      if (this.y < 0) this.y = bHeight;
-    }
+    if (this.x > bWidth) this.x = 0;
+    if (this.y > bHeight) this.y = 0;
+    if (this.x < 0) this.x = bWidth;
+    if (this.y < 0) this.y = bHeight;
   }
 
   render(ctx, dt) {

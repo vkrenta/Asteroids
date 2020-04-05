@@ -5,6 +5,8 @@ export default class Animation {
     this.height = height;
     this.current = 0;
     this.delay = delay;
+    this.timeToRefresh = this.delay;
+    this.timeToRefreshByY = this.delay;
   }
 
   get timeToRefresh() {
