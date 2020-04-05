@@ -23,7 +23,6 @@ export default class Bullet extends Entity {
       height: 64,
       delay: 100,
     });
-    this.outOfBound = false;
     this.onRock = new Event('rock');
     this.onShard = new Event('shard');
   }
@@ -49,7 +48,7 @@ export default class Bullet extends Entity {
       this.x < 0 ||
       this.y < 0
     )
-      this.outOfBound = true;
+      this.dead = true;
   }
 
   render(ctx, dt) {

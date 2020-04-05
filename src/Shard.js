@@ -8,6 +8,7 @@ export default class Shard extends Rock {
     this.hitRadius = 15;
     this.image = shard;
     this.angle = angle;
+    this.lives = 1;
   }
 
   setAngle(angle) {

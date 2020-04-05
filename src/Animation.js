@@ -12,19 +12,17 @@ export default class Animation {
   }
 
   set timeToRefresh(value) {
-    if (value >= 0) return (this._timeToRefresh = value);
-    this._timeToRefresh = 0;
-    this.ready = true;
+    if (value > 0) {
+      this.result = this.current * this.width;
+      return (this._timeToRefresh = value);
+    }
+    this.result = this.current++ * this.width;
+    this._timeToRefresh = value + this.delay;
   }
 
   getByX(dt) {
     this.timeToRefresh -= dt;
     if (this.current === this.frames) this.current = 0;
-    if (this.ready) {
-      this.ready = false;
-      this.timeToRefresh = this.delay;
-      return this.current * this.width;
-    }
-    return this.current++ * this.width;
+    return this.result;
   }
 }

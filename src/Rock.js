@@ -16,7 +16,7 @@ export default class Rock extends Entity {
       dy: 0,
       angle: random(361),
       velocity: random(0.4),
-      lives: 1,
+      lives: 3,
       untouchable: false,
     });
     this.animation = new Animation({
@@ -26,6 +26,7 @@ export default class Rock extends Entity {
     });
     this.dead = false;
     this.isSharding = false;
+    this.isRock = true;
   }
 
   setSharding(x) {
@@ -33,6 +34,7 @@ export default class Rock extends Entity {
   }
 
   move(dt, bWidth, bHeight) {
+    if (!this.lives) return (this.dead = true);
     this.dt = dt;
     if (this.lives) {
       this.dx = Math.cos(this.angle * ONE_DEGREE) * this.velocity;
@@ -49,8 +51,6 @@ export default class Rock extends Entity {
   }
 
   render(ctx, dt) {
-    if (this.lives) return super.render(ctx, this.animation.getByX(dt), 0);
-    this.dead = true;
-    // super.render(ctx, this.explodeAnimation.getByX(), 0);
+    super.render(ctx, this.animation.getByX(dt), 0);
   }
 }

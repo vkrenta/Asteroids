@@ -13,7 +13,6 @@ export default class Entity {
     angle,
     velocity,
     lives = 1,
-    untouchable = false
   }) {
     this.x = x;
     this.y = y;
@@ -26,13 +25,26 @@ export default class Entity {
     this.angle = angle;
     this.velocity = velocity;
     this.lives = lives;
-    this.untouchable = untouchable;
+    this.dead = false;
+    this.isRock = false;
+  }
+
+  set lives(value) {
+    if (value > 0) return (this._lives = value);
+    this._lives = 0;
+    this.dead = true;
+  }
+
+  get lives() {
+    return this._lives;
   }
 
   setSpawnPoint(x, y) {
     this.x = x;
     this.y = y;
   }
+
+  move(dt) {}
 
   render(ctx, sx, sy) {
     ctx.transform(1, 0, 0, 1, this.x, this.y);
@@ -66,9 +78,8 @@ export default class Entity {
       entity.hitRadius
     );
 
-    if (!this.untouchable && result) {
+    if (result) {
       this.lives--;
-      this.untouchable = true;
       entity._onCollide(this);
     }
   }

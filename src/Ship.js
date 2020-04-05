@@ -1,6 +1,7 @@
 import Entity from './Entity.js';
 import { ONE_DEGREE, SIDE } from './helpers/index.js';
 import { ship, explosion } from './helpers/images.js';
+import Bullet from './Bullet.js';
 
 export default class Ship extends Entity {
   constructor() {
@@ -28,9 +29,11 @@ export default class Ship extends Entity {
     this.invulnerabilityDelay = 1000;
     this.onLifeLost = new Event('life-lost');
     this.onDeath = new Event('death');
+    this.untouchable = true;
+    this.rechargingTime = this.coolDown;
 
     this.explosion = explosion;
-    this.dead = false;
+    this.bullets = [];
   }
 
   set invulnerability(value) {
@@ -44,26 +47,14 @@ export default class Ship extends Entity {
   }
 
   set rechargingTime(value) {
-    if (value >= 0) return (this._rechargingTime = value);
-    this._rechargingTime = 0;
-    this.isReady = true;
+    if (value > 0) return (this._rechargingTime = value);
+    if (this.isShooting)
+      this.bullets.push(new Bullet(this.x, this.y, this.angle));
+    this._rechargingTime = value + this.coolDown;
   }
 
   get rechargingTime() {
     return this._rechargingTime;
-  }
-
-  setShooting(x) {
-    this.isShooting = x;
-  }
-
-  setRotation(side) {
-    this.rotationSide = side;
-  }
-
-  shoot() {
-    this.isReady = false;
-    this.rechargingTime = this.coolDown;
   }
 
   respawn(x, y) {
@@ -84,8 +75,7 @@ export default class Ship extends Entity {
     this.dt = dt;
     this.invulnerability -= dt;
     this.rechargingTime -= dt;
-    console.log(this.invulnerability);
-    if (!this.lives) return;
+    if (this.dead) return;
 
     this.rotationAngle = 0.3 * dt;
 
@@ -116,7 +106,7 @@ export default class Ship extends Entity {
   }
 
   render(ctx, dt) {
-    if (this.lives) return super.render(ctx, 40, 0);
+    if (!this.dead) return super.render(ctx, 40, 0);
   }
 
   _onCollide(collider) {
@@ -126,7 +116,7 @@ export default class Ship extends Entity {
       !this.untouchable
     ) {
       this.lives--;
-      if (!this.lives) return dispatchEvent(this.onDeath);
+      if (this.dead) return dispatchEvent(this.onDeath);
       dispatchEvent(this.onLifeLost);
     }
   }
